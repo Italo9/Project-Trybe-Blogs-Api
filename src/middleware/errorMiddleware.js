@@ -7,6 +7,7 @@ const errors = {
         INTERNAL_SERVER: 500,
         UNPROCESSABLE_ENTITY: 422,
         NO_CONTENT: 204,
+        CONFLICT: 409,
 };
       
  const errorHandlerMiddleware = ({ name, message }, _req, res, _next) => {
