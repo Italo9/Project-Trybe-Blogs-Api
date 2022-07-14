@@ -13,8 +13,8 @@ const validateBody = (data) => {
   const { email, password } = data;
   const { error, value } = schema.validate({ email, password });
   if (error) {
-    const teste = { name: 'BAD_REQUEST', message: error.details[0].message };
-    throw teste;
+    const customError = { name: 'BAD_REQUEST', message: error.details[0].message };
+    throw customError;
   } 
   return value;
 };

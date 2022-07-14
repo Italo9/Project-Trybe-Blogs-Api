@@ -14,10 +14,9 @@ const validateBody = (data) => {
 
   const { displayName, email, password } = data;
   const { error, value } = schema.validate({ displayName, email, password });
-  console.log(error);
   if (error) {
-    const teste = { name: 'BAD_REQUEST', message: error.details[0].message };
-    throw teste;
+    const customError = { name: 'BAD_REQUEST', message: error.details[0].message };
+    throw customError;
   } 
   return value;
 };
@@ -38,7 +37,25 @@ const createUser = async ({ displayName, email, password, image }) => {
     return { token };
 };
 
+const getAllUsers = async () => {
+    const result = await User.findAll();
+    const withoutPassword = result.map((user) => {
+      const { id, displayName, email, password, image } = user;
+      const obj = {
+        id,
+        displayName,
+        email,
+        password,
+        image,
+      };
+      delete obj.password;
+      return obj;
+    });
+    return withoutPassword;
+};
+
 module.exports = {
     createUser,
     validateBody,
+    getAllUsers,
   };
