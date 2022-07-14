@@ -54,8 +54,28 @@ const getAllUsers = async () => {
     return withoutPassword;
 };
 
+const getById = async (Idparams) => {
+  const userId = await User.findOne({ where: { id: Idparams } });
+  if (!userId) {
+    const e = new Error('User does not exist');
+    e.name = 'NOT_FOUND';
+    throw e;
+  }
+  const { id, displayName, email, password, image } = userId;
+  const userIdwithoutPassword = {
+    id,
+    displayName,
+    email,
+    password,
+    image,
+  };
+  delete userIdwithoutPassword.password;
+  return userIdwithoutPassword;
+};
+
 module.exports = {
     createUser,
     validateBody,
     getAllUsers,
+    getById,
   };
