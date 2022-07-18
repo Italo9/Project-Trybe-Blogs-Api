@@ -4,6 +4,9 @@ const config = require('../database/config/config');
 
 const sequelize = new Sequelize(config.development);
 
+const { getAllUsers } = require('./usersService');
+const { getAllCategory } = require('./categoryService');
+
 const { BlogPost, Category, PostCategory } = require('../database/models/index');
 
 const validateBody = (data) => {
@@ -58,7 +61,28 @@ const addPostBlog = async ({ title, content, categoryIds }, reqUser) => {
         return createPost;
   };
 
+  const getAllBlogPost = async () => {
+    const resultBlogPost = await BlogPost.findAll();
+    const resultCategory = await getAllCategory();
+    const resultUser = await getAllUsers();
+    const result = resultBlogPost.map((ele) => {
+      const { id, title, content, userId, published, updated } = ele;
+      const mesclaInfo = {
+          id,
+          title,
+          content,
+          userId,
+          published,
+          updated,
+          user: resultUser.find((e) => e.id === userId),
+          categories: [resultCategory.find((e) => e.id === id)],
+        };
+      return mesclaInfo;
+    });
+    return result;
+};
   module.exports = {
     validateBody,
     addPostBlog,
+    getAllBlogPost,
   };
