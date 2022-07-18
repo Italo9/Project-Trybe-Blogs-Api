@@ -20,6 +20,7 @@ app.use(cors());
 app.use('/user', rescue(router.usersRouter));
 app.use('/login', rescue(router.loginRouter));
 app.use('/categories', rescue(router.categoryRouter));
+app.use('/post', rescue(router.postRouter));
 app.use(errorHandler);
 // ...
 

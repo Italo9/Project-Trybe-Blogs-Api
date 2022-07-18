@@ -27,8 +27,8 @@ const validateCredentials = async ({ email, password }) => {
       e.name = 'BAD_REQUEST';
       throw e;
     }
-
-    const token = jwtService.createToken({ data: email });
+    const { id } = user;
+    const token = jwtService.createToken({ data: email, id });
 
     return { token };
 };
