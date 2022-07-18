@@ -81,8 +81,31 @@ const addPostBlog = async ({ title, content, categoryIds }, reqUser) => {
     });
     return result;
 };
-  module.exports = {
+
+const getById = async (idParams) => {
+  const resultpostId = await BlogPost.findOne({ where: { id: idParams } });
+  if (!resultpostId) {
+    const e = new Error('Post does not exist');
+    e.name = 'NOT_FOUND';
+    throw e;
+  }
+  const resultCategory = await getAllCategory();
+  const resultUser = await getAllUsers();
+  const { id, title, content, userId, published, updated } = resultpostId;
+  const mesclaInfo = { id,
+    title,
+    content,
+    userId,
+    published,
+    updated,
+    user: resultUser.find((e) => e.id === userId),
+    categories: [resultCategory.find((e) => e.id === id)],
+  }; return mesclaInfo;
+};
+
+module.exports = {
     validateBody,
     addPostBlog,
     getAllBlogPost,
+    getById,
   };

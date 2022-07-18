@@ -6,6 +6,7 @@ const { validateToken } = require('../controllers/validateToken');
 const router = express.Router();
 
 router.get('/', validateToken, postController.getAllBlogPost);
+router.get('/:id', validateToken, postController.getById);
 router.post('/', validateToken, postController.addPostBlog);
 
 module.exports = router;
