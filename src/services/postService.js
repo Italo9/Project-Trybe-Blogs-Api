@@ -27,6 +27,23 @@ const validateBody = (data) => {
   return value;
 };
 
+const validateBodyUpdate = (data) => {
+  const schema = Joi.object({
+  title: Joi.string().required(),
+  content: Joi.string().required(),
+}).messages({
+  'any.required': 'Some required fields are missing',
+  'string.empty': 'Some required fields are missing',
+});
+const { title, content } = data;
+const { error, value } = schema.validate({ title, content });
+if (error) {
+  const customError = { name: 'BAD_REQUEST', message: error.details[0].message };
+  throw customError;
+} 
+return value;
+};
+
 const auxiliaryCheck = async (categoryIds) => {
   const checks = await Promise.all(categoryIds
     .map((elementoId) => Category.findOne({ where: { id: elementoId } })));
@@ -103,9 +120,42 @@ const getById = async (idParams) => {
   }; return mesclaInfo;
 };
 
+const assistantUpdate = async ({ id, title, content, userId, published, updated }) => {
+  const resultCategory = await getAllCategory();
+  const resultUser = await getAllUsers();
+  const mesclaInfo = { 
+    id,
+    title,
+    content,
+    userId,
+    published,
+    updated,
+    user: resultUser.find((e) => e.id === userId),
+    categories: resultCategory,
+  }; return mesclaInfo;
+};
+
+const update = async (id, { title, content }, reqUser) => {
+  const resultpostId = await BlogPost.findOne({ where: { id } });
+  const { id: idUser } = reqUser;
+  if (resultpostId.userId !== idUser) {
+    const e = new Error('Unauthorized user');
+    e.name = 'UNAUTHORIZED';
+    throw e;
+  }
+  resultpostId.set({
+    title,
+    content,
+  });
+  await resultpostId.save();
+  return assistantUpdate(resultpostId);
+};
+
 module.exports = {
     validateBody,
     addPostBlog,
     getAllBlogPost,
     getById,
+    validateBodyUpdate,
+    update,
   };
