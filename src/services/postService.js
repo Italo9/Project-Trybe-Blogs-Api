@@ -1,5 +1,6 @@
 const Joi = require('joi');
 const Sequelize = require('sequelize');
+const { Op } = require('sequelize');
 const config = require('../database/config/config');
 
 const sequelize = new Sequelize(config.development);
@@ -7,7 +8,7 @@ const sequelize = new Sequelize(config.development);
 const { getAllUsers } = require('./usersService');
 const { getAllCategory } = require('./categoryService');
 
-const { BlogPost, Category, PostCategory } = require('../database/models/index');
+const { BlogPost, Category, PostCategory, User } = require('../database/models/index');
 
 const validateBody = (data) => {
     const schema = Joi.object({
@@ -172,6 +173,22 @@ const deletePost = async (id, reqUser) => {
   return true;
 };
 
+const searchPost = async (q) => {
+  if (q.length === 0) {
+    const allPosts = await getAllBlogPost();
+    return allPosts;
+  }
+  const result = await BlogPost.findAll({
+    where: { [Op.or]: [{ title: { [Op.substring]: q } }, { content: { [Op.substring]: q } }],
+  },
+  include: [
+    { model: User, as: 'user', attributes: { exclude: ['password'] } },
+    { model: Category, as: 'categories', through: { attributes: [] } },
+  ],
+});
+  return !result ? [] : result;
+};
+
 module.exports = {
     validateBody,
     addPostBlog,
@@ -180,4 +197,5 @@ module.exports = {
     validateBodyUpdate,
     update,
     deletePost,
+    searchPost,
   };
