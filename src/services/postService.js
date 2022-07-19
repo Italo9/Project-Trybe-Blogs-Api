@@ -151,6 +151,27 @@ const update = async (id, { title, content }, reqUser) => {
   return assistantUpdate(resultpostId);
 };
 
+const deletePost = async (id, reqUser) => {
+  const { id: idUser } = reqUser;
+  const resultpostId = await BlogPost.findOne({ where: { id } });
+  if (!resultpostId) {
+    const e = new Error('Post does not exist');
+    e.name = 'NOT_FOUND';
+    throw e;
+  }
+  if (resultpostId.dataValues.userId !== idUser) {
+    const e = new Error('Unauthorized user');
+    e.name = 'UNAUTHORIZED';
+    throw e;
+  }
+   await BlogPost.destroy({
+    where: {
+      id,
+    },
+  });
+  return true;
+};
+
 module.exports = {
     validateBody,
     addPostBlog,
@@ -158,4 +179,5 @@ module.exports = {
     getById,
     validateBodyUpdate,
     update,
+    deletePost,
   };
