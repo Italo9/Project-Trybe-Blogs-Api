@@ -5,9 +5,6 @@ const config = require('../database/config/config');
 
 const sequelize = new Sequelize(config.development);
 
-const { getAllUsers } = require('./usersService');
-const { getAllCategory } = require('./categoryService');
-
 const { BlogPost, Category, PostCategory, User } = require('../database/models/index');
 
 const validateBody = (data) => {
@@ -79,65 +76,38 @@ const addPostBlog = async ({ title, content, categoryIds }, reqUser) => {
         return createPost;
   };
 
-  const getAllBlogPost = async () => {
-    const resultBlogPost = await BlogPost.findAll();
-    const resultCategory = await getAllCategory();
-    const resultUser = await getAllUsers();
-    const result = resultBlogPost.map((ele) => {
-      const { id, title, content, userId, published, updated } = ele;
-      const mesclaInfo = {
-          id,
-          title,
-          content,
-          userId,
-          published,
-          updated,
-          user: resultUser.find((e) => e.id === userId),
-          categories: [resultCategory.find((e) => e.id === id)],
-        };
-      return mesclaInfo;
-    });
-    return result;
+const getAllBlogPost = async () => {
+  const resultBlogPost = await BlogPost.findAll({
+    include: [
+      { model: User, as: 'user', attributes: { exclude: ['password'] } },
+      { model: Category, as: 'categories', through: { attributes: [] } },
+    ],
+  });
+  return resultBlogPost;
 };
 
 const getById = async (idParams) => {
-  const resultpostId = await BlogPost.findOne({ where: { id: idParams } });
+  const resultpostId = await BlogPost.findOne({ 
+    where: { id: idParams },
+    include: [
+      { model: User, as: 'user', attributes: { exclude: ['password'] } },
+      { model: Category, as: 'categories', through: { attributes: [] } },
+    ] });
   if (!resultpostId) {
     const e = new Error('Post does not exist');
     e.name = 'NOT_FOUND';
     throw e;
   }
-  const resultCategory = await getAllCategory();
-  const resultUser = await getAllUsers();
-  const { id, title, content, userId, published, updated } = resultpostId;
-  const mesclaInfo = { id,
-    title,
-    content,
-    userId,
-    published,
-    updated,
-    user: resultUser.find((e) => e.id === userId),
-    categories: [resultCategory.find((e) => e.id === id)],
-  }; return mesclaInfo;
-};
-
-const assistantUpdate = async ({ id, title, content, userId, published, updated }) => {
-  const resultCategory = await getAllCategory();
-  const resultUser = await getAllUsers();
-  const mesclaInfo = { 
-    id,
-    title,
-    content,
-    userId,
-    published,
-    updated,
-    user: resultUser.find((e) => e.id === userId),
-    categories: resultCategory,
-  }; return mesclaInfo;
+  return resultpostId;
 };
 
 const update = async (id, { title, content }, reqUser) => {
-  const resultpostId = await BlogPost.findOne({ where: { id } });
+  const resultpostId = await BlogPost.findOne({ 
+    where: { id },
+    include: [
+      { model: User, as: 'user', attributes: { exclude: ['password'] } },
+      { model: Category, as: 'categories', through: { attributes: [] } },
+    ] });
   const { id: idUser } = reqUser;
   if (resultpostId.userId !== idUser) {
     const e = new Error('Unauthorized user');
@@ -149,7 +119,7 @@ const update = async (id, { title, content }, reqUser) => {
     content,
   });
   await resultpostId.save();
-  return assistantUpdate(resultpostId);
+  return resultpostId;
 };
 
 const deletePost = async (id, reqUser) => {
